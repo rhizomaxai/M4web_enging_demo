@@ -1,0 +1,151 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>교과 탐구 웹앱 데모</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+  :root{
+    --ground:#ECEFF3;--board:#FFFFFF;--panel:#F4F6F9;--ink:#151C2B;--ink-soft:#4A5568;
+    --ink-faint:#7C879A;--line:#E0E5EC;--line-strong:#CBD3DE;
+    --accent:#2A3B63;
+    --shadow:0 1px 2px rgba(21,28,43,.05), 0 18px 44px -24px rgba(21,28,43,.35);
+    color-scheme:light;
+  }
+  :root:not([data-theme="light"]){
+    @media (prefers-color-scheme: dark){
+      --ground:#0A0E17;--board:#141A26;--panel:#1A2130;--ink:#E9EDF5;--ink-soft:#A7B1C3;
+      --ink-faint:#78849A;--line:#242D3D;--line-strong:#33405480;--line-strong:#334054;
+      --accent:#9FB2E0;
+      --shadow:0 1px 2px rgba(0,0,0,.4), 0 20px 46px -24px rgba(0,0,0,.72);color-scheme:dark;
+    }
+  }
+  :root[data-theme="dark"]{
+    --ground:#0A0E17;--board:#141A26;--panel:#1A2130;--ink:#E9EDF5;--ink-soft:#A7B1C3;
+    --ink-faint:#78849A;--line:#242D3D;--line-strong:#334054;--accent:#9FB2E0;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 20px 46px -24px rgba(0,0,0,.72);color-scheme:dark;
+  }
+
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--ground);color:var(--ink);font-family:"Noto Sans KR",system-ui,sans-serif;line-height:1.6;padding:clamp(14px,3vw,34px)}
+  .wrap{max-width:1000px;margin:0 auto;display:flex;flex-direction:column;gap:clamp(16px,2.5vw,26px)}
+
+  header{display:flex;flex-direction:column;gap:14px}
+  .brandrow{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  .brand{display:flex;align-items:center;gap:9px;font-weight:700;font-size:14px}
+  .brand .mk{width:26px;height:26px;border-radius:7px;background:var(--accent);color:var(--board);display:grid;place-items:center;font-size:15px}
+  .eyebrow{font-family:"IBM Plex Mono",monospace;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-faint);font-weight:600}
+  h1{margin:0;font-size:clamp(26px,5vw,42px);font-weight:900;letter-spacing:-.02em;line-height:1.12;text-wrap:balance}
+  .lead{font-size:clamp(15px,2.2vw,18px);color:var(--ink-soft);max-width:60ch}
+  .lead b{color:var(--ink)}
+  .chips{display:flex;gap:9px;flex-wrap:wrap;margin-top:2px}
+  .chip{display:inline-flex;align-items:center;gap:7px;background:var(--board);border:1px solid var(--line);border-radius:999px;padding:7px 14px;font-size:13px;font-weight:500;color:var(--ink-soft)}
+  .chip b{color:var(--ink);font-family:"IBM Plex Mono",monospace}
+
+  .grid{display:grid;grid-template-columns:1fr;gap:16px}
+  @media(min-width:680px){.grid{grid-template-columns:repeat(3,1fr)}}
+
+  .card{background:var(--board);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:20px;display:flex;flex-direction:column;gap:13px;position:relative;overflow:hidden}
+  .card::before{content:"";position:absolute;left:0;top:0;right:0;height:4px;background:var(--c)}
+  .chead{display:flex;align-items:center;gap:11px}
+  .badge{width:42px;height:42px;border-radius:11px;display:grid;place-items:center;font-size:22px;background:color-mix(in srgb,var(--c) 15%,transparent);flex:0 0 auto}
+  .subject{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.06em;color:var(--c);font-weight:600;text-transform:uppercase}
+  .ctitle{font-size:19px;font-weight:700;line-height:1.25;margin:0}
+  .concept{font-size:13.5px;color:var(--ink-soft);margin:0}
+  .ops{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+  .ops li{font-size:13px;color:var(--ink-soft);display:flex;gap:8px;align-items:flex-start;line-height:1.45}
+  .ops li::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--c);margin-top:7px;flex:0 0 auto}
+
+  .qrbox{margin-top:auto;display:flex;align-items:center;gap:14px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px}
+  .qr{width:112px;height:112px;flex:0 0 auto;background:#fff;border-radius:9px;padding:7px;display:grid;place-items:center}
+  .qr canvas{width:100%;height:100%;display:block;image-rendering:pixelated}
+  .qrtext{display:flex;flex-direction:column;gap:7px;min-width:0}
+  .qrtext .s{font-size:12px;color:var(--ink-faint)}
+  .open{display:inline-flex;align-items:center;gap:6px;align-self:flex-start;background:var(--c);color:#fff;text-decoration:none;font-weight:700;font-size:13px;border-radius:9px;padding:8px 14px;transition:filter .15s}
+  .open:hover{filter:brightness(1.07)}
+  .open:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+
+  footer{background:var(--board);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:20px 22px;display:flex;flex-direction:column;gap:10px}
+  .flow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13.5px;font-weight:700}
+  .flow .st{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:6px 11px}
+  .flow .ar{color:var(--ink-faint)}
+  .fnote{font-size:13.5px;color:var(--ink-soft);margin:0}
+  .fnote b{color:var(--ink)}
+  .foot-brand{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--ink-faint);letter-spacing:.08em}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="brandrow">
+      <div class="brand"><span class="mk">🧭</span><span>코딩앤플레이 · 교과 융합 AI 솔루션</span></div>
+      <span class="eyebrow">교육감 시연용</span>
+    </div>
+    <h1>학생이 직접 조작하는<br>교과 탐구 웹앱</h1>
+    <p class="lead">교사가 설계하면 30초 만에 만들어지고, 학생은 <b>로그인 없이 QR만 스캔</b>합니다. 대화형 챗봇이 아니라 <b>변수를 조작하고 관찰하며 탐구</b>하는 실행형 학습 — 아래 세 개를 지금 바로 체험해 보세요.</p>
+    <div class="chips">
+      <span class="chip">🔒 <span>무로그인 익명</span></span>
+      <span class="chip"><b>30초</b> 생성</span>
+      <span class="chip">학생 데이터 <b>0</b> 축적</span>
+      <span class="chip"><b>3</b>개 교과 데모</span>
+    </div>
+  </header>
+
+  <div class="grid" id="grid"></div>
+
+  <footer>
+    <div class="flow">
+      <span class="st">수업 설계</span><span class="ar">→</span>
+      <span class="st">웹앱 생성(30초)</span><span class="ar">→</span>
+      <span class="st">QR 배포</span><span class="ar">→</span>
+      <span class="st">학생 탐구</span><span class="ar">→</span>
+      <span class="st">평가·세특 근거</span>
+    </div>
+    <p class="fnote">세 데모 모두 같은 <b>수업 운영 엔진(M4)</b>에서 나왔습니다 — 무로그인 진입 → 수준별 분기 → 조작 탐구 → 익명 평가 근거. <b>일회성 콘텐츠가 아니라, 어떤 교과·단원에도 반복 적용되는 엔진</b>이라는 뜻입니다.</p>
+    <span class="foot-brand">CODING&amp;PLAY · 2026</span>
+  </footer>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+<script>
+  var DEMOS=[
+    {emoji:'🌱',subject:'중2 과학',title:'생태계 평형 탐구실',color:'#2F8F6B',
+     concept:'포식자–피식자 개체수가 어떻게 평형을 이루는가',
+     ops:['토끼·여우 수, 번식률·사냥 강도 슬라이더 조작','가뭄·밀렵 교란 후 평형 회복/붕괴 관찰'],
+     url:'생태계_평형_탐구실.html'},
+    {emoji:'📈',subject:'수학·데이터',title:'산점도와 상관 탐구실',color:'#4C5BD4',
+     concept:'상관계수와 “상관 ≠ 인과(허위상관)”',
+     ops:['산점도에 점을 직접 찍어 상관계수 r 실시간 확인','아이스크림–물놀이 사고로 허위상관 판별'],
+     url:'산점도와_상관_탐구실.html'},
+    {emoji:'🎲',subject:'확률·통계',title:'큰 수의 법칙 탐구실',color:'#0E8F8F',
+     concept:'대량 시행에서 상대도수가 이론값으로 수렴',
+     ops:['동전·주사위를 +1000까지 던져 수렴 곡선 관찰','도박사의 오류(독립시행) 직접 검증'],
+     url:'큰_수의_법칙_탐구실.html'}
+  ];
+
+  function build(){
+    var grid=document.getElementById('grid');
+    DEMOS.forEach(function(d){
+      var card=document.createElement('article');
+      card.className='card';card.style.setProperty('--c',d.color);
+      var ops=d.ops.map(function(o){return '<li>'+o+'</li>';}).join('');
+      card.innerHTML=
+        '<div class="chead"><div class="badge">'+d.emoji+'</div>'+
+          '<div><div class="subject">'+d.subject+'</div><h2 class="ctitle">'+d.title+'</h2></div></div>'+
+        '<p class="concept">'+d.concept+'</p>'+
+        '<ul class="ops">'+ops+'</ul>'+
+        '<div class="qrbox"><div class="qr"><canvas></canvas></div>'+
+          '<div class="qrtext"><span class="s">스마트폰으로 QR을 스캔하거나</span>'+
+          '<a class="open" href="'+d.url+'" target="_blank" rel="noopener">바로 열기 →</a></div></div>';
+      grid.appendChild(card);
+      var cvs=card.querySelector('canvas');
+      try{
+        new QRious({element:cvs,value:d.url,size:220,level:'M',foreground:'#101828',background:'#ffffff'});
+      }catch(e){
+        cvs.parentNode.innerHTML='<span class="s" style="padding:6px">QR 생성 실패 — 아래 버튼으로 여세요</span>';
+      }
+    });
+  }
+  if(window.QRious){build();}
+  else{window.addEventListener('load',build);}
+</script>
+
+</body></html>

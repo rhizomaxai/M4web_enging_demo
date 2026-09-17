@@ -1,0 +1,916 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta charset=utf8>
+  <meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <style>
+    :root {
+      color-scheme: light;
+      box-sizing: border-box;
+      padding-top: env(safe-area-inset-top, 0px);
+      padding-bottom: env(safe-area-inset-bottom, 0px)
+    }
+
+    html {
+      scroll-padding-top: env(safe-area-inset-top, 0px)
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font: 14px -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #faf9f5;
+      color: #141413
+    }
+
+    img {
+      max-width: 100%
+    }
+
+    [hidden]:not([hidden=until-found i]) {
+      display: none !important
+    }
+  </style>
+</head>
+
+<body>
+  <title>큰 수의 법칙 탐구실</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+  <style>
+    :root {
+      --ground: #EAF1F1;
+      --board: #FFFFFF;
+      --panel: #F1F7F7;
+      --ink: #12262A;
+      --ink-soft: #455B5F;
+      --ink-faint: #79908F;
+      --line: #DCE7E7;
+      --line-strong: #C2D4D4;
+      --accent: #0E8F8F;
+      --accent-tint: #DEF0EF;
+      --dot: #0E8F8F;
+      --theo: #D9662C;
+      --hit: #0E8F8F;
+      --miss: #B7C4C4;
+      --warn: #B0402E;
+      --shadow: 0 1px 2px rgba(18, 38, 42, .05), 0 14px 34px -20px rgba(18, 38, 42, .3);
+      color-scheme: light;
+    }
+
+    :root:not([data-theme="light"]) {
+      @media (prefers-color-scheme: dark) {
+        --ground: #08120F;
+        --board: #0F1B1A;
+        --panel: #152322;
+        --ink: #E6F1F0;
+        --ink-soft: #A6B9B7;
+        --ink-faint: #728784;
+        --line: #213230;
+        --line-strong: #2E4340;
+        --accent: #3FCBCB;
+        --accent-tint: #123030;
+        --dot: #3FCBCB;
+        --theo: #EE9564;
+        --hit: #3FCBCB;
+        --miss: #3A4A48;
+        --warn: #E07458;
+        --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 16px 38px -20px rgba(0, 0, 0, .7);
+        color-scheme: dark;
+      }
+    }
+
+    :root[data-theme="dark"] {
+      --ground: #08120F;
+      --board: #0F1B1A;
+      --panel: #152322;
+      --ink: #E6F1F0;
+      --ink-soft: #A6B9B7;
+      --ink-faint: #728784;
+      --line: #213230;
+      --line-strong: #2E4340;
+      --accent: #3FCBCB;
+      --accent-tint: #123030;
+      --dot: #3FCBCB;
+      --theo: #EE9564;
+      --hit: #3FCBCB;
+      --miss: #3A4A48;
+      --warn: #E07458;
+      --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 16px 38px -20px rgba(0, 0, 0, .7);
+      color-scheme: dark;
+    }
+
+    * {
+      box-sizing: border-box
+    }
+
+    body {
+      margin: 0;
+      background: var(--ground);
+      color: var(--ink);
+      font-family: "Noto Sans KR", system-ui, sans-serif;
+      line-height: 1.6;
+      padding: clamp(12px, 2.5vw, 26px)
+    }
+
+    .wrap {
+      max-width: 900px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 14px
+    }
+
+    .top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      font-weight: 700;
+      font-size: 15px
+    }
+
+    .brand .mk {
+      width: 26px;
+      height: 26px;
+      border-radius: 7px;
+      background: var(--accent);
+      color: #fff;
+      display: grid;
+      place-items: center;
+      font-size: 14px
+    }
+
+    .stepper {
+      display: flex;
+      gap: 6px;
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 11px
+    }
+
+    .stepper b {
+      padding: 4px 9px;
+      border-radius: 999px;
+      background: var(--panel);
+      color: var(--ink-faint);
+      border: 1px solid var(--line);
+      font-weight: 500
+    }
+
+    .stepper b.on {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent)
+    }
+
+    .card {
+      background: var(--board);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+      padding: clamp(18px, 3vw, 30px)
+    }
+
+    h1 {
+      margin: 0 0 6px;
+      font-size: clamp(22px, 4vw, 30px);
+      font-weight: 700;
+      letter-spacing: -.01em;
+      text-wrap: balance
+    }
+
+    h2 {
+      margin: 0 0 4px;
+      font-size: clamp(18px, 3vw, 22px);
+      font-weight: 700
+    }
+
+    p {
+      margin: 0
+    }
+
+    .muted {
+      color: var(--ink-soft)
+    }
+
+    .faint {
+      color: var(--ink-faint);
+      font-size: 13px
+    }
+
+    .eyebrow {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 12px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--accent);
+      font-weight: 600;
+      margin-bottom: 10px
+    }
+
+    .notice {
+      background: var(--accent-tint);
+      border: 1px solid color-mix(in srgb, var(--accent) 26%, transparent);
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-size: 13.5px;
+      display: flex;
+      gap: 9px;
+      align-items: flex-start
+    }
+
+    .notice .i {
+      flex: 0 0 auto
+    }
+
+    .field {
+      margin-top: 16px
+    }
+
+    .field label {
+      display: block;
+      font-size: 13px;
+      color: var(--ink-soft);
+      margin-bottom: 6px
+    }
+
+    input[type=text] {
+      width: 100%;
+      max-width: 220px;
+      padding: 10px 12px;
+      border: 1px solid var(--line-strong);
+      border-radius: 9px;
+      background: var(--board);
+      color: var(--ink);
+      font: inherit
+    }
+
+    input[type=text]:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 1px
+    }
+
+    .btn {
+      appearance: none;
+      border: none;
+      cursor: pointer;
+      font: inherit;
+      font-weight: 700;
+      border-radius: 10px;
+      padding: 12px 20px;
+      background: var(--accent);
+      color: #fff;
+      transition: filter .15s
+    }
+
+    .btn:hover {
+      filter: brightness(1.06)
+    }
+
+    .btn:focus-visible {
+      outline: 2px solid var(--ink);
+      outline-offset: 2px
+    }
+
+    .btn.ghost {
+      background: var(--panel);
+      color: var(--ink);
+      border: 1px solid var(--line-strong)
+    }
+
+    .btn.sm {
+      padding: 9px 13px;
+      font-size: 13px;
+      font-weight: 600
+    }
+
+    .btnrow {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 20px;
+      align-items: center
+    }
+
+    .q {
+      margin-top: 18px
+    }
+
+    .q .qt {
+      font-weight: 700;
+      margin-bottom: 10px
+    }
+
+    .opts {
+      display: flex;
+      flex-direction: column;
+      gap: 8px
+    }
+
+    .opt {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      padding: 11px 14px;
+      border: 1px solid var(--line-strong);
+      border-radius: 10px;
+      cursor: pointer;
+      background: var(--board);
+      transition: border-color .12s, background .12s
+    }
+
+    .opt:hover {
+      border-color: var(--accent)
+    }
+
+    .opt.sel {
+      border-color: var(--accent);
+      background: var(--accent-tint)
+    }
+
+    .opt .rd {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      border: 2px solid var(--line-strong);
+      flex: 0 0 auto
+    }
+
+    .opt.sel .rd {
+      border-color: var(--accent);
+      background: var(--accent);
+      box-shadow: inset 0 0 0 3px var(--board)
+    }
+
+    .pathbadge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 13px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 14px;
+      background: var(--accent-tint);
+      color: var(--accent);
+      border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent)
+    }
+
+    .lab {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px
+    }
+
+    @media(min-width:720px) {
+      .lab {
+        grid-template-columns: 1.4fr 1fr
+      }
+    }
+
+    .chartwrap {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px
+    }
+
+    canvas {
+      width: 100%;
+      height: auto;
+      display: block;
+      border-radius: 8px
+    }
+
+    .legend {
+      display: flex;
+      gap: 16px;
+      margin-top: 8px;
+      font-size: 13px;
+      flex-wrap: wrap
+    }
+
+    .legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px
+    }
+
+    .legend i {
+      width: 14px;
+      height: 4px;
+      border-radius: 2px;
+      display: inline-block
+    }
+
+    .legend i.dash {
+      background: repeating-linear-gradient(90deg, var(--theo) 0 5px, transparent 5px 9px);
+      height: 3px
+    }
+
+    .readout {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+      flex-wrap: wrap
+    }
+
+    .stat {
+      flex: 1;
+      min-width: 90px;
+      background: var(--board);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 9px 12px
+    }
+
+    .stat .n {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 20px;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums
+    }
+
+    .stat .l {
+      font-size: 12px;
+      color: var(--ink-faint)
+    }
+
+    .expchips {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 14px;
+      flex-wrap: wrap
+    }
+
+    .expchip {
+      flex: 1;
+      text-align: center;
+      padding: 11px 10px;
+      border: 1px solid var(--line-strong);
+      border-radius: 10px;
+      background: var(--board);
+      color: var(--ink);
+      cursor: pointer;
+      font: inherit;
+      font-size: 13.5px;
+      font-weight: 600;
+      transition: border-color .12s, background .12s
+    }
+
+    .expchip:hover {
+      border-color: var(--accent)
+    }
+
+    .expchip.active {
+      border-color: var(--accent);
+      background: var(--accent-tint)
+    }
+
+    .rollbtns {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 8px
+    }
+
+    .strip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-top: 12px;
+      min-height: 26px
+    }
+
+    .rc {
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      display: grid;
+      place-items: center;
+      font-size: 13px;
+      font-weight: 700;
+      font-family: "IBM Plex Mono", monospace
+    }
+
+    .rc.hit {
+      background: color-mix(in srgb, var(--hit) 20%, transparent);
+      color: var(--hit);
+      border: 1px solid color-mix(in srgb, var(--hit) 40%, transparent)
+    }
+
+    .rc.miss {
+      background: var(--panel);
+      color: var(--ink-faint);
+      border: 1px solid var(--line)
+    }
+
+    .mission {
+      background: var(--accent-tint);
+      border-radius: 10px;
+      padding: 14px 16px;
+      margin-top: 4px;
+      border: 1px solid color-mix(in srgb, var(--accent) 20%, transparent)
+    }
+
+    .mission h3 {
+      margin: 0 0 6px;
+      font-size: 14px;
+      color: var(--accent);
+      font-family: "IBM Plex Mono", monospace;
+      letter-spacing: .05em;
+      text-transform: uppercase
+    }
+
+    .mission ol {
+      margin: 0;
+      padding-left: 18px;
+      font-size: 14px
+    }
+
+    .mission li {
+      margin: 4px 0
+    }
+
+    .record {
+      margin-top: 16px
+    }
+
+    .record textarea {
+      width: 100%;
+      min-height: 78px;
+      padding: 11px 13px;
+      border: 1px solid var(--line-strong);
+      border-radius: 10px;
+      background: var(--board);
+      color: var(--ink);
+      font: inherit;
+      resize: vertical
+    }
+
+    .record textarea:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 1px
+    }
+
+    .logline {
+      font-size: 12px;
+      color: var(--ink-faint);
+      font-family: "IBM Plex Mono", monospace;
+      margin-top: 8px
+    }
+
+    .summary {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 16px
+    }
+
+    .srow {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 11px 14px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      font-size: 14px
+    }
+
+    .srow .k {
+      color: var(--ink-soft)
+    }
+
+    .srow .val {
+      font-weight: 700;
+      text-align: right
+    }
+
+    .qa {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 13px 15px;
+      font-size: 14px
+    }
+
+    .qa .qk {
+      font-size: 12px;
+      color: var(--ink-faint);
+      margin-bottom: 3px
+    }
+
+    .privacy {
+      margin-top: 16px;
+      border: 1px dashed var(--line-strong);
+      border-radius: 10px;
+      padding: 13px 15px;
+      font-size: 13px;
+      color: var(--ink-soft);
+      display: flex;
+      gap: 9px
+    }
+
+    [hidden] {
+      display: none !important
+    }
+  </style>
+
+  <div class="wrap">
+    <div class="top">
+      <div class="brand"><span class="mk">🎲</span><span>큰 수의 법칙 탐구실 · 중·고 확률/통계</span></div>
+      <div class="stepper" id="stepper">
+        <b data-s="0" class="on">입장</b><b data-s="1">진단</b><b data-s="2">탐구</b><b data-s="3">정리</b>
+      </div>
+    </div>
+
+    <!-- 0 입장 -->
+    <section class="card" id="scr-enter">
+      <div class="eyebrow">무로그인 입장</div>
+      <h1>많이 던질수록 확률은 정말 맞을까?</h1>
+      <p class="muted">동전과 주사위를 <strong>수천 번</strong> 던져 보며, 상대도수가 <strong>이론적 확률로 수렴</strong>하는지 직접 확인합니다.</p>
+      <div class="notice" style="margin-top:16px"><span class="i">🔒</span>
+        <div><strong>이름·계정이 필요 없어요.</strong> 활동은 이 기기 안에서만 처리되고 어디에도 저장·전송되지 않습니다.<div class="faint"
+            style="margin-top:4px">AI 사용 수준 · <strong>레벨 1</strong> — AI는 힌트·해설만, 실험은 여러분이 직접.</div>
+        </div>
+      </div>
+      <div class="field"><label for="seat">모둠·좌석 번호 (선택)</label><input type="text" id="seat" placeholder="예: 4모둠 / 9번"
+          autocomplete="off"></div>
+      <div class="btnrow"><button class="btn" id="toDiag">탐구 시작하기 →</button></div>
+    </section>
+
+    <!-- 1 진단 -->
+    <section class="card" id="scr-diag" hidden>
+      <div class="eyebrow">사전 진단 · 2문항</div>
+      <h2>먼저, 여러분의 생각을 들어볼게요</h2>
+      <p class="muted">정답 시험이 아니에요. 답에 맞춰 탐구 경로를 골라 드립니다.</p>
+      <div class="q" data-q="0">
+        <div class="qt">Q1. 공정한 동전을 <strong>아주 많이</strong> 던지면, 앞면이 나온 비율은 어디에 가까워질까요?</div>
+        <div class="opts">
+          <div class="opt" data-v="1"><span class="rd"></span><span>0.5 (절반)에 가까워진다</span></div>
+          <div class="opt" data-v="0"><span class="rd"></span><span>던질수록 1에 가까워진다</span></div>
+          <div class="opt" data-v="0"><span class="rd"></span><span>계속 들쭉날쭉, 정해지지 않는다</span></div>
+        </div>
+      </div>
+      <div class="q" data-q="1">
+        <div class="qt">Q2. 동전에서 <strong>앞이 5번 연속</strong> 나왔어요. 다음에 뒤가 나올 확률은?</div>
+        <div class="opts">
+          <div class="opt" data-v="1"><span class="rd"></span><span>여전히 0.5 — 매 던지기는 서로 영향이 없다</span></div>
+          <div class="opt" data-v="0"><span class="rd"></span><span>0.5보다 높다 — 이제 뒤가 나올 차례다</span></div>
+          <div class="opt" data-v="0"><span class="rd"></span><span>0.5보다 낮다 — 앞이 계속 나올 기세다</span></div>
+        </div>
+      </div>
+      <div class="btnrow"><button class="btn" id="toLab" disabled>탐구실 입장 →</button><span class="faint" id="diagHint">두
+          문항 모두 선택하면 입장할 수 있어요.</span></div>
+    </section>
+
+    <!-- 2 탐구 -->
+    <section class="card" id="scr-lab" hidden>
+      <div
+        style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:6px">
+        <div class="eyebrow" style="margin:0">탐구실</div><span class="pathbadge" id="pathBadge">표준 경로</span>
+      </div>
+      <div class="mission" id="mission">
+        <h3>오늘의 미션</h3>
+        <ol id="missionSteps"></ol>
+      </div>
+
+      <div class="lab" style="margin-top:16px">
+        <div>
+          <div class="chartwrap">
+            <canvas id="chart" width="520" height="300" aria-label="상대도수 수렴 그래프"></canvas>
+            <div class="legend">
+              <span><i style="background:var(--accent)"></i>상대도수(실제)</span>
+              <span><i class="dash"></i>이론적 확률</span>
+            </div>
+          </div>
+          <div class="readout">
+            <div class="stat">
+              <div class="n" id="nTrials">0</div>
+              <div class="l">던진 횟수</div>
+            </div>
+            <div class="stat">
+              <div class="n" id="nHit" style="color:var(--accent)">0</div>
+              <div class="l" id="hitLbl">앞면 수</div>
+            </div>
+            <div class="stat">
+              <div class="n" id="rf" style="color:var(--accent)">–</div>
+              <div class="l">상대도수</div>
+            </div>
+            <div class="stat">
+              <div class="n" id="theo">0.500</div>
+              <div class="l">이론값</div>
+            </div>
+          </div>
+          <div class="strip" id="strip" aria-label="최근 결과"></div>
+          <p class="faint" style="margin-top:6px">↑ 최근 결과 (최대 24개) · 색이 있는 칸이 '성공'</p>
+        </div>
+
+        <div class="controls">
+          <div class="faint" style="margin-bottom:6px">실험 선택</div>
+          <div class="expchips" id="expchips">
+            <button class="expchip active" data-e="coin">🪙 동전<br><span class="faint">앞면 (p=0.5)</span></button>
+            <button class="expchip" data-e="dice">🎲 주사위<br><span class="faint">1의 눈 (p≈0.167)</span></button>
+          </div>
+          <div class="faint" style="margin-bottom:6px">던지기</div>
+          <div class="rollbtns">
+            <button class="btn sm ghost" data-k="1">+1</button>
+            <button class="btn sm ghost" data-k="10">+10</button>
+            <button class="btn sm" data-k="100">+100</button>
+            <button class="btn sm" data-k="1000">+1000</button>
+          </div>
+          <div class="rollbtns"><button class="btn sm ghost" id="reset">초기화</button></div>
+        </div>
+      </div>
+
+      <div class="record">
+        <div style="font-weight:700;margin-bottom:6px">관찰 기록</div>
+        <p class="faint" id="recPrompt" style="margin-bottom:8px"></p>
+        <textarea id="note" placeholder="관찰한 내용을 자유롭게 적어보세요…"></textarea>
+        <div class="logline" id="logline">활동 기록: 0건 · (이 기기에만 임시 보관)</div>
+      </div>
+      <div class="btnrow"><button class="btn" id="toWrap">탐구 마치기 →</button></div>
+    </section>
+
+    <!-- 3 정리 -->
+    <section class="card" id="scr-wrap" hidden>
+      <div class="eyebrow">정리 · 평가 근거 미리보기</div>
+      <h2>오늘의 탐구, 이렇게 정리됐어요</h2>
+      <p class="muted">아래는 선생님께 전달되는 <strong>과정 평가 근거</strong>입니다. 이름 없이, 활동 요약만 담깁니다.</p>
+      <div class="summary" id="summary"></div>
+      <div class="privacy"><span>🔒</span>
+        <div>이 요약에는 <strong>이름·계정·개인정보가 없습니다.</strong> 기기를 닫으면 원본 활동 데이터는 사라지고, 선생님께는 익명 요약만 남습니다.</div>
+      </div>
+      <div class="btnrow"><button class="btn ghost" id="again">데모 홈으로</button></div>
+    </section>
+
+    <p class="faint" style="text-align:center">코딩앤플레이 · M4 웹앱 엔진 데모 — 챗봇으로는 만들 수 없는 조작·탐구형 학습</p>
+  </div>
+
+  <script>
+    (function () {
+      "use strict";
+      function byId(id) { return document.getElementById(id); }
+      var screens = { enter: byId('scr-enter'), diag: byId('scr-diag'), lab: byId('scr-lab'), wrap: byId('scr-wrap') };
+      var stepEls = [].slice.call(document.querySelectorAll('#stepper b'));
+      function show(name, idx) { for (var k in screens) { screens[k].hidden = (k !== name); } stepEls.forEach(function (b) { b.classList.toggle('on', +b.dataset.s === idx); }); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+      function css(v) { return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
+      function esc(s) { return s.replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+
+      var seat = '', path = '표준', diag = [null, null], log = [];
+      var exp = 'coin', P = 0.5, n = 0, hit = 0, series = [], recent = [], maxN = 1;
+      var DICE = ['⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
+
+      function logEvent(t) { log.push(t); var el = byId('logline'); if (el) el.textContent = '활동 기록: ' + log.length + '건 · (이 기기에만 임시 보관)'; }
+
+      byId('toDiag').addEventListener('click', function () { seat = byId('seat').value.trim(); show('diag', 1); });
+      document.querySelectorAll('#scr-diag .q').forEach(function (q) {
+        var qi = +q.dataset.q;
+        q.querySelectorAll('.opt').forEach(function (opt) {
+          opt.addEventListener('click', function () {
+            q.querySelectorAll('.opt').forEach(function (o) { o.classList.remove('sel'); });
+            opt.classList.add('sel'); diag[qi] = +opt.dataset.v;
+            if (diag[0] !== null && diag[1] !== null) { byId('toLab').disabled = false; byId('diagHint').textContent = '준비됐어요. 탐구실로!'; }
+          });
+        });
+      });
+
+      var MISSIONS = {
+        '기초': ['「+10」을 눌러 10번 던지고 상대도수를 확인하세요. 0.5에 가깝나요?', '「+1000」을 눌러 많이 던진 뒤, 상대도수가 이론값(점선)에 가까워지는지 관찰하세요.', '던진 횟수가 적을 때와 많을 때, 그래프가 얼마나 흔들리는지 비교해 기록하세요.'],
+        '표준': ['동전으로 1000번 이상 던져 상대도수가 0.5로 수렴하는 모습을 관찰하세요.', '주사위(1의 눈)로 바꿔 같은 실험을 하고, 이론값 0.167로 수렴하는지 확인하세요.', '시행이 적을 때 상대도수가 왜 크게 튀는지 관찰 기록에 설명하세요.'],
+        '심화': ['최근 결과 칸을 보세요. 같은 결과가 연속으로 나온 구간을 찾으세요.', '앞이 여러 번 연속 나온 뒤, "이제 뒤가 나올 차례"라는 생각이 맞는지 +1로 한 번씩 던지며 확인하세요.', '매 던지기가 서로 독립임(도박사의 오류)을, 상대도수는 수렴하지만 개별 결과는 예측 불가라는 점과 함께 관찰 기록에 논증하세요.']
+      };
+      var RECP = { '기초': '적게 던졌을 때와 많이 던졌을 때 상대도수가 얼마나 다른지 적어보세요.', '표준': '동전과 주사위 각각 상대도수가 어떤 값으로 수렴했는지, 적은 시행에서 왜 튀는지 적어보세요.', '심화': '연속된 결과가 다음 던지기에 영향을 주는지, 도박사의 오류에 대한 여러분의 결론을 적어보세요.' };
+
+      byId('toLab').addEventListener('click', function () {
+        var s = (diag[0] || 0) + (diag[1] || 0); path = s === 0 ? '기초' : (s === 1 ? '표준' : '심화');
+        byId('pathBadge').textContent = path + ' 경로';
+        var ol = byId('missionSteps'); ol.innerHTML = ''; MISSIONS[path].forEach(function (m) { var li = document.createElement('li'); li.textContent = m; ol.appendChild(li); });
+        byId('recPrompt').textContent = RECP[path];
+        resetAll(); logEvent('탐구 시작 · ' + path + ' 경로');
+        show('lab', 2); setTimeout(draw, 60);
+      });
+
+      // experiment select
+      document.querySelectorAll('#expchips .expchip').forEach(function (c) {
+        c.addEventListener('click', function () {
+          exp = c.dataset.e; P = exp === 'coin' ? 0.5 : 1 / 6;
+          [].forEach.call(document.querySelectorAll('#expchips .expchip'), function (x) { x.classList.toggle('active', x === c); });
+          byId('hitLbl').textContent = exp === 'coin' ? '앞면 수' : '1의 눈 수';
+          byId('theo').textContent = P.toFixed(3);
+          resetAll(); draw(); logEvent('실험 전환 · ' + (exp === 'coin' ? '동전' : '주사위'));
+        });
+      });
+
+      function resetAll() { n = 0; hit = 0; series = [{ n: 0, rf: P }]; recent = []; maxN = 1; updateStats(); renderStrip(); }
+      byId('reset').addEventListener('click', function () { resetAll(); draw(); logEvent('초기화'); });
+
+      function sampleStep() { return n < 200 ? 1 : (n < 2000 ? 10 : 50); }
+      function roll(k) {
+        for (var i = 0; i < k; i++) {
+          var ok, face = 0;
+          if (exp === 'coin') { ok = Math.random() < 0.5; }
+          else { face = 1 + Math.floor(Math.random() * 6); ok = (face === 1); }
+          n++; if (ok) hit++;
+          recent.push({ ok: ok, face: face }); if (recent.length > 24) recent.shift();
+          if (n % sampleStep() === 0) { series.push({ n: n, rf: hit / n }); }
+        }
+        series.push({ n: n, rf: hit / n }); // always end point
+        if (series.length > 700) { // thin
+          var out = [series[0]]; var step = Math.ceil(series.length / 650);
+          for (var j = 1; j < series.length - 1; j += step)out.push(series[j]);
+          out.push(series[series.length - 1]); series = out;
+        }
+        maxN = Math.max(maxN, n);
+        updateStats(); renderStrip(); draw();
+        logEvent('던지기 +' + k + ' (누적 ' + n + ')');
+      }
+      document.querySelectorAll('.rollbtns .btn[data-k]').forEach(function (b) {
+        b.addEventListener('click', function () { roll(+b.dataset.k); });
+      });
+
+      function updateStats() {
+        byId('nTrials').textContent = n;
+        byId('nHit').textContent = hit;
+        byId('rf').textContent = n ? (hit / n).toFixed(3) : '–';
+        byId('theo').textContent = P.toFixed(3);
+      }
+      function renderStrip() {
+        var s = byId('strip'); s.innerHTML = '';
+        recent.forEach(function (r) {
+          var d = document.createElement('div'); d.className = 'rc ' + (r.ok ? 'hit' : 'miss');
+          d.textContent = exp === 'coin' ? (r.ok ? '앞' : '뒤') : (r.face ? DICE[r.face - 1] : '');
+          s.appendChild(d);
+        });
+      }
+
+      var cv = byId('chart'), ctx = cv.getContext('2d');
+      function draw() {
+        var W = cv.clientWidth || 520, H = 300, dpr = Math.min(window.devicePixelRatio || 1, 2);
+        if (cv.width !== Math.round(W * dpr)) { cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); }
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
+        var pl = 40, pt = 12, pr = 12, pb = 26, pw = W - pl - pr, ph = H - pt - pb;
+        var xmax = Math.max(10, maxN);
+        var X = function (v) { return pl + pw * (v / xmax); };
+        var Y = function (v) { return pt + ph * (1 - v); };
+        // grid (y 0..1)
+        ctx.strokeStyle = css('--line'); ctx.fillStyle = css('--ink-faint'); ctx.lineWidth = 1;
+        ctx.font = '11px "IBM Plex Mono",monospace'; ctx.textBaseline = 'middle'; ctx.textAlign = 'right';
+        [0, 0.25, 0.5, 0.75, 1].forEach(function (g) { var y = Y(g); ctx.beginPath(); ctx.moveTo(pl, y); ctx.lineTo(W - pr, y); ctx.stroke(); ctx.fillText(g.toFixed(2), pl - 6, y); });
+        // theoretical line
+        ctx.strokeStyle = css('--theo'); ctx.lineWidth = 2; ctx.setLineDash([5, 4]);
+        ctx.beginPath(); ctx.moveTo(pl, Y(P)); ctx.lineTo(W - pr, Y(P)); ctx.stroke(); ctx.setLineDash([]);
+        // series
+        if (series.length > 1) {
+          ctx.strokeStyle = css('--accent'); ctx.lineWidth = 2.2; ctx.lineJoin = 'round'; ctx.beginPath();
+          for (var i = 0; i < series.length; i++) { var x = X(series[i].n), y = Y(Math.max(0, Math.min(1, series[i].rf))); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }
+          ctx.stroke();
+          var last = series[series.length - 1];
+          ctx.fillStyle = css('--accent'); ctx.beginPath(); ctx.arc(X(last.n), Y(last.rf), 3.4, 0, 7); ctx.fill();
+        }
+        // x labels
+        ctx.fillStyle = css('--ink-faint'); ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+        ctx.fillText('0', pl, H - pb + 7); ctx.fillText(String(xmax) + '회', W - pr, H - pb + 7);
+        ctx.fillText('던진 횟수 →', pl + pw / 2, H - pb + 7);
+      }
+      window.addEventListener('resize', function () { if (!screens.lab.hidden) draw(); });
+
+      byId('toWrap').addEventListener('click', function () {
+        var note = byId('note').value.trim();
+        var conv = n >= 500 ? '수렴 관찰(이론값 근접)' : (n > 0 ? '시행 부족 — 더 던져야 명확' : '실험 미실행');
+        var rows = [
+          ['탐구 경로', path + ' 경로'],
+          ['다룬 개념', '큰 수의 법칙 · 확률의 수렴, 독립시행(도박사의 오류)'],
+          ['실험', exp === 'coin' ? '동전 던지기(앞면, p=0.5)' : '주사위(1의 눈, p≈0.167)'],
+          ['총 던진 횟수', n + '회'],
+          ['최종 상대도수', (n ? (hit / n).toFixed(3) : '–') + ' (이론값 ' + P.toFixed(3) + ')'],
+          ['관찰 결과', conv],
+          ['식별 정보', '없음 (익명 세션)']
+        ];
+        var box = byId('summary'); box.innerHTML = '';
+        rows.forEach(function (r) { var el = document.createElement('div'); el.className = 'srow'; el.innerHTML = '<span class="k">' + r[0] + '</span><span class="val">' + esc(r[1]) + '</span>'; box.appendChild(el); });
+        var qa = document.createElement('div'); qa.className = 'qa'; qa.innerHTML = '<div class="qk">학생 관찰 기록</div>' + (note ? esc(note) : '<span class="muted">기록 없음</span>'); box.appendChild(qa);
+        logEvent('탐구 마침'); show('wrap', 3);
+      });
+
+      byId('again').addEventListener('click', function () {
+        location.href = '교과_탐구_웹앱_데모.html';
+      });
+
+      resetAll();
+    })();
+  </script>
+
+</body>
+
+</html>

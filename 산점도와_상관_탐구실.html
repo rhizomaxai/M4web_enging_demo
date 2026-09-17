@@ -1,0 +1,881 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta charset=utf8>
+  <meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <style>
+    :root {
+      color-scheme: light;
+      box-sizing: border-box;
+      padding-top: env(safe-area-inset-top, 0px);
+      padding-bottom: env(safe-area-inset-bottom, 0px)
+    }
+
+    html {
+      scroll-padding-top: env(safe-area-inset-top, 0px)
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font: 14px -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #faf9f5;
+      color: #141413
+    }
+
+    img {
+      max-width: 100%
+    }
+
+    [hidden]:not([hidden=until-found i]) {
+      display: none !important
+    }
+  </style>
+</head>
+
+<body>
+  <title>산점도와 상관 탐구실</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+  <style>
+    :root {
+      --ground: #EEF0F7;
+      --board: #FFFFFF;
+      --panel: #F4F5FB;
+      --ink: #191D2E;
+      --ink-soft: #4E5468;
+      --ink-faint: #828AA0;
+      --line: #E0E3EF;
+      --line-strong: #C7CCE0;
+      --accent: #4C5BD4;
+      --accent-tint: #E8EAFA;
+      --dot: #4C5BD4;
+      --trend: #D9662C;
+      --warn: #B0402E;
+      --shadow: 0 1px 2px rgba(25, 29, 46, .05), 0 14px 34px -20px rgba(25, 29, 46, .3);
+      color-scheme: light;
+    }
+
+    :root:not([data-theme="light"]) {
+      @media (prefers-color-scheme: dark) {
+        --ground: #0B0E18;
+        --board: #141826;
+        --panel: #1A1F30;
+        --ink: #E9ECF6;
+        --ink-soft: #AAB1C6;
+        --ink-faint: #7C8298;
+        --line: #262C40;
+        --line-strong: #343B55;
+        --accent: #8E9CF2;
+        --accent-tint: #1E2340;
+        --dot: #8E9CF2;
+        --trend: #EE9564;
+        --warn: #E07458;
+        --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 16px 38px -20px rgba(0, 0, 0, .7);
+        color-scheme: dark;
+      }
+    }
+
+    :root[data-theme="dark"] {
+      --ground: #0B0E18;
+      --board: #141826;
+      --panel: #1A1F30;
+      --ink: #E9ECF6;
+      --ink-soft: #AAB1C6;
+      --ink-faint: #7C8298;
+      --line: #262C40;
+      --line-strong: #343B55;
+      --accent: #8E9CF2;
+      --accent-tint: #1E2340;
+      --dot: #8E9CF2;
+      --trend: #EE9564;
+      --warn: #E07458;
+      --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 16px 38px -20px rgba(0, 0, 0, .7);
+      color-scheme: dark;
+    }
+
+    * {
+      box-sizing: border-box
+    }
+
+    body {
+      margin: 0;
+      background: var(--ground);
+      color: var(--ink);
+      font-family: "Noto Sans KR", system-ui, sans-serif;
+      line-height: 1.6;
+      padding: clamp(12px, 2.5vw, 26px)
+    }
+
+    .wrap {
+      max-width: 900px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 14px
+    }
+
+    .top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      font-weight: 700;
+      font-size: 15px
+    }
+
+    .brand .mk {
+      width: 26px;
+      height: 26px;
+      border-radius: 7px;
+      background: var(--accent);
+      color: #fff;
+      display: grid;
+      place-items: center;
+      font-size: 14px
+    }
+
+    .stepper {
+      display: flex;
+      gap: 6px;
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 11px
+    }
+
+    .stepper b {
+      padding: 4px 9px;
+      border-radius: 999px;
+      background: var(--panel);
+      color: var(--ink-faint);
+      border: 1px solid var(--line);
+      font-weight: 500
+    }
+
+    .stepper b.on {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent)
+    }
+
+    .card {
+      background: var(--board);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+      padding: clamp(18px, 3vw, 30px)
+    }
+
+    h1 {
+      margin: 0 0 6px;
+      font-size: clamp(22px, 4vw, 30px);
+      font-weight: 700;
+      letter-spacing: -.01em;
+      text-wrap: balance
+    }
+
+    h2 {
+      margin: 0 0 4px;
+      font-size: clamp(18px, 3vw, 22px);
+      font-weight: 700
+    }
+
+    p {
+      margin: 0
+    }
+
+    .muted {
+      color: var(--ink-soft)
+    }
+
+    .faint {
+      color: var(--ink-faint);
+      font-size: 13px
+    }
+
+    .eyebrow {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 12px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--accent);
+      font-weight: 600;
+      margin-bottom: 10px
+    }
+
+    .notice {
+      background: var(--accent-tint);
+      border: 1px solid color-mix(in srgb, var(--accent) 26%, transparent);
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-size: 13.5px;
+      display: flex;
+      gap: 9px;
+      align-items: flex-start
+    }
+
+    .notice .i {
+      flex: 0 0 auto
+    }
+
+    .field {
+      margin-top: 16px
+    }
+
+    .field label {
+      display: block;
+      font-size: 13px;
+      color: var(--ink-soft);
+      margin-bottom: 6px
+    }
+
+    input[type=text] {
+      width: 100%;
+      max-width: 220px;
+      padding: 10px 12px;
+      border: 1px solid var(--line-strong);
+      border-radius: 9px;
+      background: var(--board);
+      color: var(--ink);
+      font: inherit
+    }
+
+    input[type=text]:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 1px
+    }
+
+    .btn {
+      appearance: none;
+      border: none;
+      cursor: pointer;
+      font: inherit;
+      font-weight: 700;
+      border-radius: 10px;
+      padding: 12px 20px;
+      background: var(--accent);
+      color: #fff;
+      transition: filter .15s
+    }
+
+    .btn:hover {
+      filter: brightness(1.06)
+    }
+
+    .btn:focus-visible {
+      outline: 2px solid var(--ink);
+      outline-offset: 2px
+    }
+
+    .btn.ghost {
+      background: var(--panel);
+      color: var(--ink);
+      border: 1px solid var(--line-strong)
+    }
+
+    .btn.sm {
+      padding: 8px 14px;
+      font-size: 13px;
+      font-weight: 500
+    }
+
+    .btnrow {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 20px;
+      align-items: center
+    }
+
+    .q {
+      margin-top: 18px
+    }
+
+    .q .qt {
+      font-weight: 700;
+      margin-bottom: 10px
+    }
+
+    .opts {
+      display: flex;
+      flex-direction: column;
+      gap: 8px
+    }
+
+    .opt {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      padding: 11px 14px;
+      border: 1px solid var(--line-strong);
+      border-radius: 10px;
+      cursor: pointer;
+      background: var(--board);
+      transition: border-color .12s, background .12s
+    }
+
+    .opt:hover {
+      border-color: var(--accent)
+    }
+
+    .opt.sel {
+      border-color: var(--accent);
+      background: var(--accent-tint)
+    }
+
+    .opt .rd {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      border: 2px solid var(--line-strong);
+      flex: 0 0 auto
+    }
+
+    .opt.sel .rd {
+      border-color: var(--accent);
+      background: var(--accent);
+      box-shadow: inset 0 0 0 3px var(--board)
+    }
+
+    .pathbadge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 13px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 14px;
+      background: var(--accent-tint);
+      color: var(--accent);
+      border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent)
+    }
+
+    .lab {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px
+    }
+
+    @media(min-width:720px) {
+      .lab {
+        grid-template-columns: 1.35fr 1fr
+      }
+    }
+
+    .chartwrap {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px
+    }
+
+    canvas {
+      width: 100%;
+      height: auto;
+      display: block;
+      border-radius: 8px;
+      cursor: crosshair;
+      touch-action: none
+    }
+
+    .readout {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px
+    }
+
+    .stat {
+      flex: 1;
+      background: var(--board);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 9px 12px
+    }
+
+    .stat .n {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 22px;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums
+    }
+
+    .stat .l {
+      font-size: 12px;
+      color: var(--ink-faint)
+    }
+
+    .rtag {
+      font-size: 12px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 999px;
+      display: inline-block;
+      margin-top: 3px
+    }
+
+    .chiprow {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 14px
+    }
+
+    .dschip {
+      text-align: left;
+      padding: 10px 13px;
+      border: 1px solid var(--line-strong);
+      border-radius: 10px;
+      background: var(--board);
+      color: var(--ink);
+      cursor: pointer;
+      font: inherit;
+      font-size: 13.5px;
+      transition: border-color .12s, background .12s
+    }
+
+    .dschip:hover {
+      border-color: var(--accent)
+    }
+
+    .dschip.active {
+      border-color: var(--accent);
+      background: var(--accent-tint);
+      font-weight: 700
+    }
+
+    .dschip small {
+      display: block;
+      color: var(--ink-faint);
+      font-weight: 400;
+      font-size: 12px
+    }
+
+    .ctlbtns {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 8px
+    }
+
+    .chk {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 13px;
+      color: var(--ink-soft);
+      margin-top: 4px;
+      cursor: pointer
+    }
+
+    .mission {
+      background: var(--accent-tint);
+      border-radius: 10px;
+      padding: 14px 16px;
+      margin-top: 4px;
+      border: 1px solid color-mix(in srgb, var(--accent) 20%, transparent)
+    }
+
+    .mission h3 {
+      margin: 0 0 6px;
+      font-size: 14px;
+      color: var(--accent);
+      font-family: "IBM Plex Mono", monospace;
+      letter-spacing: .05em;
+      text-transform: uppercase
+    }
+
+    .mission ol {
+      margin: 0;
+      padding-left: 18px;
+      font-size: 14px
+    }
+
+    .mission li {
+      margin: 4px 0
+    }
+
+    .record {
+      margin-top: 16px
+    }
+
+    .record textarea {
+      width: 100%;
+      min-height: 78px;
+      padding: 11px 13px;
+      border: 1px solid var(--line-strong);
+      border-radius: 10px;
+      background: var(--board);
+      color: var(--ink);
+      font: inherit;
+      resize: vertical
+    }
+
+    .record textarea:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 1px
+    }
+
+    .logline {
+      font-size: 12px;
+      color: var(--ink-faint);
+      font-family: "IBM Plex Mono", monospace;
+      margin-top: 8px
+    }
+
+    .summary {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 16px
+    }
+
+    .srow {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 11px 14px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      font-size: 14px
+    }
+
+    .srow .k {
+      color: var(--ink-soft)
+    }
+
+    .srow .val {
+      font-weight: 700;
+      text-align: right
+    }
+
+    .qa {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 13px 15px;
+      font-size: 14px
+    }
+
+    .qa .qk {
+      font-size: 12px;
+      color: var(--ink-faint);
+      margin-bottom: 3px
+    }
+
+    .privacy {
+      margin-top: 16px;
+      border: 1px dashed var(--line-strong);
+      border-radius: 10px;
+      padding: 13px 15px;
+      font-size: 13px;
+      color: var(--ink-soft);
+      display: flex;
+      gap: 9px
+    }
+
+    [hidden] {
+      display: none !important
+    }
+  </style>
+
+  <div class="wrap">
+    <div class="top">
+      <div class="brand"><span class="mk">📈</span><span>산점도와 상관 탐구실 · 중·고 수학/데이터</span></div>
+      <div class="stepper" id="stepper">
+        <b data-s="0" class="on">입장</b><b data-s="1">진단</b><b data-s="2">탐구</b><b data-s="3">정리</b>
+      </div>
+    </div>
+
+    <!-- 0 입장 -->
+    <section class="card" id="scr-enter">
+      <div class="eyebrow">무로그인 입장</div>
+      <h1>두 변수는 정말 관계있을까?</h1>
+      <p class="muted">산점도에 점을 직접 찍어 보며 <strong>상관계수가 어떻게 변하는지</strong>, 그리고 <strong>상관이 곧 인과인지</strong>를 탐구합니다.</p>
+      <div class="notice" style="margin-top:16px"><span class="i">🔒</span>
+        <div><strong>이름·계정이 필요 없어요.</strong> 활동은 이 기기 안에서만 처리되고 어디에도 저장·전송되지 않습니다.<div class="faint"
+            style="margin-top:4px">AI 사용 수준 · <strong>레벨 1</strong> — AI는 힌트·해설만, 탐구는 여러분이 직접.</div>
+        </div>
+      </div>
+      <div class="field"><label for="seat">모둠·좌석 번호 (선택)</label><input type="text" id="seat" placeholder="예: 2모둠 / 7번"
+          autocomplete="off"></div>
+      <div class="btnrow"><button class="btn" id="toDiag">탐구 시작하기 →</button></div>
+    </section>
+
+    <!-- 1 진단 -->
+    <section class="card" id="scr-diag" hidden>
+      <div class="eyebrow">사전 진단 · 2문항</div>
+      <h2>먼저, 여러분의 생각을 들어볼게요</h2>
+      <p class="muted">정답 시험이 아니에요. 답에 맞춰 탐구 경로를 골라 드립니다.</p>
+      <div class="q" data-q="0">
+        <div class="qt">Q1. 점들이 <strong>오른쪽 위로</strong> 올라가는 모양이면, 두 변수의 관계는?</div>
+        <div class="opts">
+          <div class="opt" data-v="1"><span class="rd"></span><span>양의 상관 (하나가 크면 다른 것도 큼)</span></div>
+          <div class="opt" data-v="0"><span class="rd"></span><span>음의 상관 (하나가 크면 다른 것은 작음)</span></div>
+          <div class="opt" data-v="0"><span class="rd"></span><span>관계 없음</span></div>
+        </div>
+      </div>
+      <div class="q" data-q="1">
+        <div class="qt">Q2. 상관계수 r이 아주 높으면, <strong>항상</strong> 한 변수가 다른 변수의 원인일까요?</div>
+        <div class="opts">
+          <div class="opt" data-v="1"><span class="rd"></span><span>아니다 — 우연이나 숨은 원인일 수 있다</span></div>
+          <div class="opt" data-v="0"><span class="rd"></span><span>그렇다 — r이 높으면 항상 원인·결과다</span></div>
+          <div class="opt" data-v="0"><span class="rd"></span><span>r이 0.5만 넘으면 반드시 인과다</span></div>
+        </div>
+      </div>
+      <div class="btnrow"><button class="btn" id="toLab" disabled>탐구실 입장 →</button><span class="faint" id="diagHint">두
+          문항 모두 선택하면 입장할 수 있어요.</span></div>
+    </section>
+
+    <!-- 2 탐구 -->
+    <section class="card" id="scr-lab" hidden>
+      <div
+        style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:6px">
+        <div class="eyebrow" style="margin:0">탐구실</div><span class="pathbadge" id="pathBadge">표준 경로</span>
+      </div>
+      <div class="mission" id="mission">
+        <h3>오늘의 미션</h3>
+        <ol id="missionSteps"></ol>
+      </div>
+
+      <div class="lab" style="margin-top:16px">
+        <div>
+          <div class="chartwrap">
+            <canvas id="chart" width="520" height="320" aria-label="산점도"></canvas>
+            <p class="faint" style="margin-top:8px" id="axisNote">그래프를 클릭하면 점을 추가할 수 있어요.</p>
+          </div>
+          <div class="readout">
+            <div class="stat">
+              <div class="n" id="rVal" style="color:var(--accent)">0.00</div>
+              <div class="l">상관계수 r</div><span class="rtag" id="rTag"></span>
+            </div>
+            <div class="stat">
+              <div class="n" id="nPts">0</div>
+              <div class="l">점 개수</div>
+            </div>
+          </div>
+          <label class="chk"><input type="checkbox" id="showTrend"> 추세선 보기 (점들의 전체 경향)</label>
+        </div>
+
+        <div class="controls">
+          <div class="faint" style="margin-bottom:6px">데이터셋 선택</div>
+          <div class="chiprow" id="chiprow"></div>
+          <div class="ctlbtns">
+            <button class="btn sm ghost" id="clearAdded">추가한 점 지우기</button>
+          </div>
+          <p class="faint" id="dsHint" style="margin-top:2px"></p>
+        </div>
+      </div>
+
+      <div class="record">
+        <div style="font-weight:700;margin-bottom:6px">관찰 기록</div>
+        <p class="faint" id="recPrompt" style="margin-bottom:8px"></p>
+        <textarea id="note" placeholder="관찰한 내용을 자유롭게 적어보세요…"></textarea>
+        <div class="logline" id="logline">활동 기록: 0건 · (이 기기에만 임시 보관)</div>
+      </div>
+      <div class="btnrow"><button class="btn" id="toWrap">탐구 마치기 →</button></div>
+    </section>
+
+    <!-- 3 정리 -->
+    <section class="card" id="scr-wrap" hidden>
+      <div class="eyebrow">정리 · 평가 근거 미리보기</div>
+      <h2>오늘의 탐구, 이렇게 정리됐어요</h2>
+      <p class="muted">아래는 선생님께 전달되는 <strong>과정 평가 근거</strong>입니다. 이름 없이, 활동 요약만 담깁니다.</p>
+      <div class="summary" id="summary"></div>
+      <div class="privacy"><span>🔒</span>
+        <div>이 요약에는 <strong>이름·계정·개인정보가 없습니다.</strong> 기기를 닫으면 원본 활동 데이터는 사라지고, 선생님께는 익명 요약만 남습니다.</div>
+      </div>
+      <div class="btnrow"><button class="btn ghost" id="again">데모 홈으로</button></div>
+    </section>
+
+    <p class="faint" style="text-align:center">코딩앤플레이 · M4 웹앱 엔진 데모 — 챗봇으로는 만들 수 없는 조작·탐구형 학습</p>
+  </div>
+
+  <script>
+    (function () {
+      "use strict";
+      function byId(id) { return document.getElementById(id); }
+      var screens = { enter: byId('scr-enter'), diag: byId('scr-diag'), lab: byId('scr-lab'), wrap: byId('scr-wrap') };
+      var stepEls = [].slice.call(document.querySelectorAll('#stepper b'));
+      function show(name, idx) { for (var k in screens) { screens[k].hidden = (k !== name); } stepEls.forEach(function (b) { b.classList.toggle('on', +b.dataset.s === idx); }); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+      function css(v) { return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
+      function esc(s) { return s.replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+
+      var DATASETS = [
+        {
+          name: '공부시간 → 시험 점수', hint: '하루 공부시간이 늘수록 점수가 오르는 경향.', xlabel: '하루 공부시간(시간)', ylabel: '시험 점수', xmin: 0, xmax: 10, ymin: 0, ymax: 100, trap: false,
+          pts: [[1, 48], [2, 55], [2, 50], [3, 60], [3, 66], [4, 63], [4, 72], [5, 70], [5, 78], [6, 80], [6, 75], [7, 85], [8, 88], [9, 95]]
+        },
+        {
+          name: '스마트폰 사용 → 시험 점수', hint: '사용 시간이 늘수록 점수가 내려가는 경향.', xlabel: '하루 스마트폰(시간)', ylabel: '시험 점수', xmin: 0, xmax: 10, ymin: 0, ymax: 100, trap: false,
+          pts: [[1, 88], [2, 82], [2, 78], [3, 80], [4, 70], [4, 66], [5, 68], [6, 58], [6, 62], [7, 52], [8, 50], [9, 42]]
+        },
+        {
+          name: '아이스크림 판매 → 물놀이 사고 ⚠️', hint: 'r이 아주 높지만… 정말 인과일까?', xlabel: '월 아이스크림 판매(백 개)', ylabel: '월 물놀이 사고(건)', xmin: 0, xmax: 10, ymin: 0, ymax: 10, trap: true,
+          pts: [[2, 2], [3, 3], [3, 2], [4, 4], [5, 5], [5, 4], [6, 6], [7, 7], [7, 6], [8, 8], [9, 9]]
+        }
+      ];
+
+      var seat = '', path = '표준', diag = [null, null], log = [];
+      var dsi = 0, points = [], added = 0, switches = 0, trendToggles = 0, visitedTrap = false;
+
+      function logEvent(t) { log.push(t); var el = byId('logline'); if (el) el.textContent = '활동 기록: ' + log.length + '건 · (이 기기에만 임시 보관)'; }
+
+      byId('toDiag').addEventListener('click', function () { seat = byId('seat').value.trim(); show('diag', 1); });
+
+      document.querySelectorAll('#scr-diag .q').forEach(function (q) {
+        var qi = +q.dataset.q;
+        q.querySelectorAll('.opt').forEach(function (opt) {
+          opt.addEventListener('click', function () {
+            q.querySelectorAll('.opt').forEach(function (o) { o.classList.remove('sel'); });
+            opt.classList.add('sel'); diag[qi] = +opt.dataset.v;
+            if (diag[0] !== null && diag[1] !== null) { byId('toLab').disabled = false; byId('diagHint').textContent = '준비됐어요. 탐구실로!'; }
+          });
+        });
+      });
+
+      var MISSIONS = {
+        '기초': ['세 데이터셋을 눌러 보며, 점들이 오른쪽 위/아래 어디로 향하는지 보세요.', '각 데이터셋의 상관계수 r을 읽고, 양의 상관인지 음의 상관인지 판단하세요.', '추세선 보기를 켜서 전체 경향을 확인하세요.'],
+        '표준': ['「공부시간 → 점수」에서 점을 5개 추가하기 전에, r이 오를지 내릴지 예측해 관찰 기록에 먼저 적으세요.', '그래프를 클릭해 점을 추가하며 r 변화를 확인하세요. 경향과 반대 위치에 찍으면 어떻게 될까요?', '추세선이 점 추가에 따라 어떻게 움직이는지 관찰하세요.'],
+        '심화': ['「아이스크림 → 물놀이 사고」를 열고 r을 확인하세요. 매우 높죠?', 'r이 높다고 아이스크림이 사고의 원인일까요? 두 값을 함께 끌어올리는 숨은 변수는 무엇일까요?', '상관이 높아도 인과가 아닌 이유를 관찰 기록에 논증하세요.']
+      };
+      var RECP = { '기초': '각 데이터셋의 r 값과, 양/음/무 상관 판단을 적어보세요.', '표준': '점 추가 전 예측과, 실제 r 변화가 예측과 같았는지 적어보세요.', '심화': 'r이 높은데도 인과가 아닌 이유와, 숨은 공통 변수가 무엇일지 적어보세요.' };
+
+      byId('toLab').addEventListener('click', function () {
+        var s = (diag[0] || 0) + (diag[1] || 0); path = s === 0 ? '기초' : (s === 1 ? '표준' : '심화');
+        byId('pathBadge').textContent = path + ' 경로';
+        var ol = byId('missionSteps'); ol.innerHTML = ''; MISSIONS[path].forEach(function (m) { var li = document.createElement('li'); li.textContent = m; ol.appendChild(li); });
+        byId('recPrompt').textContent = RECP[path];
+        buildChips(); loadDs(path === '심화' ? 2 : 0, true);
+        logEvent('탐구 시작 · ' + path + ' 경로');
+        show('lab', 2); setTimeout(draw, 60);
+      });
+
+      function buildChips() {
+        var row = byId('chiprow'); row.innerHTML = '';
+        DATASETS.forEach(function (d, i) {
+          var b = document.createElement('button'); b.className = 'dschip' + (i === dsi ? ' active' : '');
+          b.innerHTML = esc(d.name) + '<small>' + esc(d.xlabel) + ' vs ' + esc(d.ylabel) + '</small>';
+          b.addEventListener('click', function () { switches++; loadDs(i, false); logEvent('데이터셋 전환 · ' + d.name); });
+          row.appendChild(b);
+        });
+      }
+      function loadDs(i, first) {
+        dsi = i; var d = DATASETS[i];
+        points = d.pts.map(function (p) { return { x: p[0], y: p[1] }; }); added = 0;
+        if (d.trap) visitedTrap = true;
+        byId('dsHint').textContent = d.hint;
+        byId('axisNote').textContent = 'X: ' + d.xlabel + ' · Y: ' + d.ylabel + ' · 클릭하면 점 추가';
+        [].forEach.call(document.querySelectorAll('.dschip'), function (c, k) { c.classList.toggle('active', k === i); });
+        updateStats(); draw();
+      }
+      byId('clearAdded').addEventListener('click', function () { loadDs(dsi, false); logEvent('추가한 점 지우기'); });
+      byId('showTrend').addEventListener('change', function () { trendToggles++; draw(); logEvent(this.checked ? '추세선 켜기' : '추세선 끄기'); });
+
+      function stats() {
+        var n = points.length; if (n < 2) return { r: 0, a: 0, b: 0, n: n };
+        var sx = 0, sy = 0, sxy = 0, sxx = 0, syy = 0;
+        points.forEach(function (p) { sx += p.x; sy += p.y; sxy += p.x * p.y; sxx += p.x * p.x; syy += p.y * p.y; });
+        var cov = n * sxy - sx * sy, dx = n * sxx - sx * sx, dy = n * syy - sy * sy;
+        var r = (dx > 0 && dy > 0) ? cov / Math.sqrt(dx * dy) : 0;
+        var b = dx !== 0 ? cov / dx : 0, a = (sy - b * sx) / n;
+        return { r: r, a: a, b: b, n: n };
+      }
+      function rLabel(r) {
+        var ar = Math.abs(r), dir = r > 0 ? '양의' : '음의';
+        if (ar < 0.2) return ['거의 없음', '#828AA0'];
+        if (ar < 0.4) return ['약한 ' + dir + ' 상관', '#8E9CF2'];
+        if (ar < 0.7) return ['뚜렷한 ' + dir + ' 상관', r > 0 ? '#4C5BD4' : '#D9662C'];
+        return ['강한 ' + dir + ' 상관', r > 0 ? '#4C5BD4' : '#D9662C'];
+      }
+      function updateStats() {
+        var s = stats(); byId('rVal').textContent = (s.r >= 0 ? ' ' : '') + s.r.toFixed(2);
+        byId('nPts').textContent = s.n;
+        var lb = rLabel(s.r), tag = byId('rTag'); tag.textContent = s.n < 2 ? '점을 더 찍어요' : lb[0];
+        tag.style.background = 'color-mix(in srgb,' + lb[1] + ' 18%,transparent)'; tag.style.color = lb[1];
+      }
+
+      // chart
+      var cv = byId('chart'), ctx = cv.getContext('2d');
+      var geo = { l: 44, t: 12, r: 12, b: 34, w: 0, h: 0, W: 0, H: 0 };
+      function draw() {
+        var W = cv.clientWidth || 520, H = 320, dpr = Math.min(window.devicePixelRatio || 1, 2);
+        if (cv.width !== Math.round(W * dpr)) { cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); }
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
+        var d = DATASETS[dsi];
+        var pl = geo.l, pt = geo.t, pw = W - geo.l - geo.r, ph = H - geo.t - geo.b;
+        geo.w = pw; geo.h = ph; geo.W = W; geo.H = H;
+        var X = function (x) { return pl + pw * (x - d.xmin) / (d.xmax - d.xmin); };
+        var Y = function (y) { return pt + ph * (1 - (y - d.ymin) / (d.ymax - d.ymin)); };
+        // grid + ticks
+        ctx.strokeStyle = css('--line'); ctx.fillStyle = css('--ink-faint'); ctx.lineWidth = 1;
+        ctx.font = '11px "IBM Plex Mono",monospace'; ctx.textBaseline = 'middle'; ctx.textAlign = 'right';
+        var gy; for (gy = 0; gy <= 4; gy++) { var yv = d.ymin + (d.ymax - d.ymin) * gy / 4, y = Y(yv); ctx.beginPath(); ctx.moveTo(pl, y); ctx.lineTo(W - geo.r, y); ctx.stroke(); ctx.fillText(String(Math.round(yv)), pl - 6, y); }
+        ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+        var gx; for (gx = 0; gx <= 5; gx++) { var xv = d.xmin + (d.xmax - d.xmin) * gx / 5, x = X(xv); ctx.fillText(String(Math.round(xv)), x, H - geo.b + 7); }
+        // axis labels
+        ctx.fillStyle = css('--ink-soft'); ctx.font = '12px "Noto Sans KR",sans-serif';
+        ctx.fillText(d.xlabel, pl + pw / 2, H - 16);
+        ctx.save(); ctx.translate(13, pt + ph / 2); ctx.rotate(-Math.PI / 2); ctx.fillText(d.ylabel, 0, 0); ctx.restore();
+        // trend line
+        if (byId('showTrend').checked && points.length >= 2) {
+          var s = stats(); ctx.strokeStyle = css('--trend'); ctx.lineWidth = 2.4; ctx.setLineDash([6, 4]);
+          var x1 = d.xmin, x2 = d.xmax, y1 = s.a + s.b * x1, y2 = s.a + s.b * x2;
+          y1 = Math.max(d.ymin, Math.min(d.ymax, y1)); y2 = Math.max(d.ymin, Math.min(d.ymax, y2));
+          ctx.beginPath(); ctx.moveTo(X(x1), Y(s.a + s.b * x1)); ctx.lineTo(X(x2), Y(s.a + s.b * x2)); ctx.stroke(); ctx.setLineDash([]);
+        }
+        // points
+        points.forEach(function (p, i) {
+          ctx.fillStyle = css('--dot'); ctx.globalAlpha = i < DATASETS[dsi].pts.length ? 0.9 : 1;
+          ctx.beginPath(); ctx.arc(X(p.x), Y(p.y), i < DATASETS[dsi].pts.length ? 4.2 : 5.4, 0, 7); ctx.fill();
+          if (i >= DATASETS[dsi].pts.length) { ctx.strokeStyle = css('--board'); ctx.lineWidth = 1.6; ctx.stroke(); }
+        });
+        ctx.globalAlpha = 1;
+        updateStats();
+      }
+      function addPointAt(clientX, clientY) {
+        var rect = cv.getBoundingClientRect();
+        var px = clientX - rect.left, py = clientY - rect.top;
+        if (px < geo.l || px > geo.W - geo.r || py < geo.t || py > geo.t + geo.h) return;
+        var d = DATASETS[dsi];
+        var x = d.xmin + (px - geo.l) / geo.w * (d.xmax - d.xmin);
+        var y = d.ymin + (1 - (py - geo.t) / geo.h) * (d.ymax - d.ymin);
+        points.push({ x: x, y: y }); added++; draw(); logEvent('점 추가 (' + x.toFixed(1) + ', ' + y.toFixed(1) + ')');
+      }
+      cv.addEventListener('click', function (e) { addPointAt(e.clientX, e.clientY); });
+      window.addEventListener('resize', function () { if (!screens.lab.hidden) draw(); });
+
+      byId('toWrap').addEventListener('click', function () {
+        var note = byId('note').value.trim(), s = stats(), d = DATASETS[dsi], lb = rLabel(s.r);
+        var rows = [
+          ['탐구 경로', path + ' 경로'],
+          ['다룬 개념', '산점도·상관계수, 상관 ≠ 인과'],
+          ['조작 활동', '데이터셋 전환 ' + switches + '회 · 점 추가 ' + added + '개 · 추세선 ' + trendToggles + '회'],
+          ['마지막 본 데이터', d.name + ' (r=' + s.r.toFixed(2) + ', ' + lb[0] + ')'],
+          ['허위상관 사례 탐구', visitedTrap ? '예 (아이스크림–물놀이 사고)' : '아니오'],
+          ['식별 정보', '없음 (익명 세션)']
+        ];
+        var box = byId('summary'); box.innerHTML = '';
+        rows.forEach(function (r) { var el = document.createElement('div'); el.className = 'srow'; el.innerHTML = '<span class="k">' + r[0] + '</span><span class="val">' + esc(r[1]) + '</span>'; box.appendChild(el); });
+        var qa = document.createElement('div'); qa.className = 'qa'; qa.innerHTML = '<div class="qk">학생 관찰 기록</div>' + (note ? esc(note) : '<span class="muted">기록 없음</span>'); box.appendChild(qa);
+        logEvent('탐구 마침'); show('wrap', 3);
+      });
+
+      byId('again').addEventListener('click', function () {
+        location.href = '교과_탐구_웹앱_데모.html';
+      });
+    })();
+  </script>
+
+</body>
+
+</html>
